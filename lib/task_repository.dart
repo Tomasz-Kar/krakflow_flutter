@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:http/http.dart' as http;
+
 class Task {
   final String title;
   final String deadline;
@@ -7,24 +11,35 @@ class Task {
   Task({required this.title, required this.deadline, required this.priority, required this.done});
 }
 
+class TaskApiService {
+  static const String baseUrl = "https://dummyjson.com";
+  static Future<List<Task>> fetchTasks() async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/todos"),
+    );
+    if (response.statusCode == 200) {
+      final random = Random();
+      final priorities = ["niski", "średni", "wysoki"];
+      final data = jsonDecode(response.body);
+      final List todos = data["todos"];
+      return todos.map((todo) {
+        return Task(
+          title: todo["todo"],
+          deadline: "za ${random.nextInt(30)+2} dni",
+          done: todo["completed"],
+          priority: priorities[random.nextInt(priorities.length)]
+        );
+      }).toList();
+    } else {
+      throw Exception("Błąd pobierania danych");
+    }
+  }
+}
+
 
 class TaskRepository {
-  static List<Task> tasks = [
-    Task(title: "Projekt metodologia",
-        deadline: "nastepna sroda",
-        priority: "niski",
-        done: true),
-    Task(title: "Cwiczenia z analizy",
-        deadline: "za 2 tygodnie",
-        priority: "niski",
-        done: false),
-    Task(title: "Zadanie z systemow",
-        deadline: "w tym miesiacu",
-        priority: "sredni",
-        done: false),
-    Task(title: "Dokonczyc laboratorium",
-        deadline: "jutro",
-        priority: "wysoki",
-        done: true),
-  ];
+  static List<Task> tasks = [];
+  /*static Future<void> loadTasksFromServer() async {
+    tasks = await TaskApiService.fetchTasks();
+  }*/
 }
