@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:krakflow_flutter/services/notification_service.dart';
 import '../models/task.dart';
 import 'filterBar.dart';
 import 'edit_task_screen.dart';
@@ -144,6 +145,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             child: TaskCard(
                               task: task,
                               onChanged: (value) async {
+                                final isDone = value ?? false;
+                                final wasDone = task.done;
+
                                 final updatedTask = Task(
                                   id: task.id,
                                   title: task.title,
@@ -155,6 +159,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                                 setState(() {
                                   tasksFuture = loadTasks();
                                 });
+                                if(!wasDone && isDone) {
+                                  await NotificationService.showTaskDoneNotification(task.title);
+                                }
                               },
                               onTap: () async {
                                 final Task? updatedTask = await Navigator.push(
